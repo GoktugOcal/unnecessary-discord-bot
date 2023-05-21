@@ -1,0 +1,32 @@
+{
+  "name": "unnecessary-discord-bot",
+  "version": "1.0.0",
+  "description": "A Discord Bot with various capabilities.",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm test",
+    "register": "node -r dotenv/config register.js",
+    "start": "node -r dotenv/config index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoktugOcal/unnecessary-discord-bot.git"
+  },
+  "keywords": [
+    "discord;",
+    "bot;",
+    "slash-commands"
+  ],
+  "author": "Göktuğ Öcal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GoktugOcal/unnecessary-discord-bot/issues"
+  },
+  "homepage": "https://github.com/GoktugOcal/unnecessary-discord-bot#readme",
+  "dependencies": {
+    "@discordjs/rest": "^1.7.1",
+    "discord-api-types": "^0.37.42",
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.0.3"
+  }
+}
