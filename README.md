@@ -11,4 +11,4 @@ APP_ID = {APPLICATION_ID}
 TOKEN = {YOUR_BOT_TOKEN}
 ```
 
-Resource: ![https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/](https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/)
+Resource: [https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/](https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/)
