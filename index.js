@@ -3,29 +3,50 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+
+    const eventFile = require(`./register2.js`);
+    // But first check if it's an event emitted once
+    if (eventFile.once)
+      console.log("hello")
+      eventFile.invoke(client);
   });
 
-const options = [
-    '🐭',
-    'https://media.giphy.com/media/wJZTbXayokOgbCfyQe/giphy.gif',
-    'https://media.giphy.com/media/QXh9XnIJetPi0/giphy.gif',
-    '🐁',
-];
 
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
-  
-    if (interaction.commandName === 'randomice') {
-      await interaction.reply(
-        options[Math.floor(Math.random() * options.length)]
-      );
-    }
 
-    else if (interaction.commandName === 'ping') {
-        await interaction.reply(
-            "pong!"
-        )
+    try {
+      delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
+
+      let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
+      commandFile.run(client, interaction);
+
+    } catch (e) {
+        console.log(e.name);
+        if (e.name === "Error") {
+            await interaction.reply("Yanlış komut girdin dostum " + "🧐" + "\n`.help` yazarak komutları görebilirsin.")
+            console.log(e.stack)
+        } else {
+            console.log(e.stack)
+            await interaction.reply("Bir şeyler ters gitti 😱")
+        }
     }
+  
+
+
+
+
+    // if (interaction.commandName === 'randomice') {
+    //   await interaction.reply(
+    //     options[Math.floor(Math.random() * options.length)]
+    //   );
+    // }
+
+    // else if (interaction.commandName === 'ping') {
+    //     await interaction.reply(
+    //         "pong!"
+    //     )
+    // }
 
   });
 
