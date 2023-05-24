@@ -6,7 +6,7 @@ const Discord = require('discord.js');
 const fs = require('fs')
 
 exports.run = (client, message, args) => {
-    apikey = "RGAPI-59ffceb5-cdef-488b-8e9d-70fbdc1e6749";
+    apikey = process.env.RIOT_API;
     summonerName = ""
     region = ""
     messContent = message.content.split(" ")

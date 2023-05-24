@@ -8,6 +8,10 @@ exports.create = () => {
         .addUserOption((option) =>
                 option.setName("option1")
                 .setDescription("empty option no 1")
+        )
+        .addMentionableOption( (option) =>
+            option.setName("mentionable-option")
+            .setDescription("mention trial")
         );
     
     return command.toJSON()

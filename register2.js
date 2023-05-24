@@ -7,7 +7,7 @@ exports.invoke = async (client) => {
     console.log("Hi")
     const commands = fs
         .readdirSync('./commands/interactions')
-        .filter((file) => file.endsWith('trial.js'));
+        .filter((file) => file.endsWith('.js'));
 
     const commandsArray = [];
 
