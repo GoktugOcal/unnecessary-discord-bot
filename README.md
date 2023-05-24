@@ -6,9 +6,11 @@ npm i discord.js @discordjs/rest discord-api-types dotenv
 ```
 
 - Fill ".env" with:
-```json
+```python
 APP_ID = {APPLICATION_ID}
 TOKEN = {YOUR_BOT_TOKEN}
 ```
 
-Resource: [https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/](https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/)
+Resources: 
+- [https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/](https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/)
+- [https://www.youtube.com/watch?v=HBt8MXHcaPI](https://www.youtube.com/watch?v=HBt8MXHcaPI)
