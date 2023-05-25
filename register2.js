@@ -4,7 +4,6 @@ exports.once = true;
 exports.name = 'ready';
 
 exports.invoke = async (client) => {
-    console.log("Hi")
     const commands = fs
         .readdirSync('./commands/interactions')
         .filter((file) => file.endsWith('.js'));

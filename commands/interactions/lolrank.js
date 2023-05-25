@@ -2,6 +2,7 @@ const request = require('sync-request');
 const Discord = require('discord.js');
 const fs = require('fs')
 
+
 exports.create = () => {
     const command = new Discord.SlashCommandBuilder()
         .setName("lolrank")
@@ -41,23 +42,7 @@ exports.create = () => {
 
 exports.run = async (client, interaction) => {
 
-    // const exampleEmbed = new Discord.EmbedBuilder()
-    //     .setColor(0x0099FF)
-    //     .setTitle('Some title')
-    //     .setURL('https://discord.js.org/')
-    //     .setAuthor({ name: 'Some name', iconURL: 'https://i.imgur.com/AfFp7pu.png', url: 'https://discord.js.org' })
-    //     .setDescription('Some description here')
-    //     .setThumbnail('https://i.imgur.com/AfFp7pu.png')
-    //     .addFields(
-    //         { name: 'Regular field title', value: 'Some value here' },
-    //         { name: '\u200B', value: '\u200B' },
-    //         { name: 'Inline field title', value: 'Some value here', inline: true },
-    //         { name: 'Inline field title', value: 'Some value here', inline: true },
-    //     )
-    //     .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-    //     .setImage('https://i.imgur.com/AfFp7pu.png')
-    //     .setTimestamp()
-    //     .setFooter({ text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+    await interaction.deferReply()
 
     cdnVersion = JSON.parse(request('GET', "https://ddragon.leagueoflegends.com/api/versions.json").getBody('utf8'))[0]
     apikey = process.env.RIOT_API;
@@ -74,33 +59,36 @@ exports.run = async (client, interaction) => {
         var rankInfo = request('GET', 'https://' + region + '.api.riotgames.com/lol/league/v4/entries/by-summoner/' + summonerID + '?api_key=' + apikey)
 
         if (rankInfo.getBody('utf8') === "[]") {
-            await interaction.reply("Görünüşe göre henüz bir derecelendirmen yok 😫 Git biraz LOL oyna")
+            await interaction.editReply("You don't have a rank 😫 play some LOL")
         } else {
             rankInfo = JSON.parse(rankInfo.getBody('utf8'))
-            
             if(rankInfo.length > 1){
-                console.log(rankInfo.length)
                 var exampleEmbed = new Discord.EmbedBuilder()
                     .setColor('#FF5733')
                     .setTitle(rankInfo[0]["summonerName"])
                     .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
                     .setDescription("Level : " + summonerInfo["summonerLevel"])
-                    // .addField("```Ranked Solo```", rankInfo[0]["tier"] + "    " + rankInfo[0]["rank"], false)
                     .addFields(
-                        { name: 'Regular field title', value: 'Some value here' },
-                        { name: '\u200B', value: '\u200B' },
-                        { name: 'Inline field title', value: 'Some value here', inline: true },
-                        { name: 'Inline field title', value: 'Some value here', inline: true },
+                        { name: '`Ranked Solo` ' + rankInfo[0]["tier"] + " " + rankInfo[0]["rank"], value: "-----"}
                     )
-                    // .addFields(
-                    //     { name: 'Wins', value: rankInfo[0]["wins"], inline: true },
-                    //     { name: 'Losses', value: rankInfo[0]["losses"], inline: true },
-                    //     { name: 'Hot Streak', value: rankInfo[0]["hotStreak"], inline: true },
-                    //     { name: 'League Points', value: rankInfo[0]["leaguePoints"], inline: true }
-                    // )
-                    // // .addField("```Ranked Flex```", rankInfo[1]["tier"] + "    " + rankInfo[1]["rank"], false)
-                    // .addFields({ name: 'Wins', value: rankInfo[1]["wins"], inline: true }, { name: 'Losses', value: rankInfo[1]["losses"], inline: true }, { name: 'Hot Streak', value: rankInfo[1]["hotStreak"], inline: true }, { name: 'League Points', value: rankInfo[1]["leaguePoints"], inline: true })
-                    // .setFooter("Project A Bot'tan sevgilerle", client.user.avatarURL());
+                    .addFields(
+                        { name: 'Wins', value: rankInfo[0]["wins"].toString(), inline: true },
+                        { name: 'Losses', value: rankInfo[0]["losses"].toString(), inline: true },
+                        { name: 'Hot Streak', value: rankInfo[0]["hotStreak"].toString(), inline: true },
+                        { name: 'League Points', value: rankInfo[0]["leaguePoints"].toString(), inline: true }
+                        )
+                    .addFields(
+                        { name: '`Ranked Flex` ' + rankInfo[1]["tier"] + " " + rankInfo[1]["rank"], value: "-----"}
+                    )
+                    .addFields(
+                        { name: 'Wins', value: rankInfo[1]["wins"].toString(), inline: true },
+                        { name: 'Losses', value: rankInfo[1]["losses"].toString(), inline: true },
+                        { name: 'Hot Streak', value: rankInfo[1]["hotStreak"].toString(), inline: true },
+                        { name: 'League Points', value: rankInfo[1]["leaguePoints"].toString(), inline: true }
+                        )
+                    .setFooter(
+                        { text: "heil to the lord", iconURL: client.user.avatarURL()}
+                        );
             }
             else{
                 console.log("$")
@@ -110,17 +98,26 @@ exports.run = async (client, interaction) => {
                     .setTitle(rankInfo[0]["summonerName"])
                     .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
                     .setDescription("Level : " + summonerInfo["summonerLevel"])
-                    // .addField("```Ranked Solo```", rankInfo[0]["tier"] + "    " + rankInfo[0]["rank"], false)
-                    .addFields({ name: 'Wins', value: rankInfo[0]["wins"], inline: true }, { name: 'Losses', value: rankInfo[0]["losses"], inline: true }, { name: 'Hot Streak', value: rankInfo[0]["hotStreak"], inline: true }, { name: 'League Points', value: rankInfo[0]["leaguePoints"], inline: true })
-                    .setFooter("Project A Bot'tan sevgilerle", client.user.avatarURL());
+                    .addFields(
+                        { name: '`Ranked Solo` ' + rankInfo[0]["tier"] + " " + rankInfo[0]["rank"], value: rankInfo[0]["tier"].toLowerCase()}
+                    )
+                    .addFields(
+                        { name: 'Wins', value: rankInfo[0]["wins"].toString(), inline: true },
+                        { name: 'Losses', value: rankInfo[0]["losses"].toString(), inline: true },
+                        { name: 'Hot Streak', value: rankInfo[0]["hotStreak"].toString(), inline: true },
+                        { name: 'League Points', value: rankInfo[0]["leaguePoints"].toString(), inline: true }
+                        )
+                    .setFooter(
+                        { text: "heil to the lord", iconURL: client.user.avatarURL()}
+                        );    
             }
 
-            // await interaction.reply("HOP")
-            // console.log(interaction.constructor)
-            await interaction.reply({ embeds: [exampleEmbed]})
+            await interaction.editReply({ embeds: [exampleEmbed]})
+
+            return 1
         }
     } else {
-        await interaction.reply("Yanlış bir şeyler var 🙄")
-
+        await interaction.editReply("Something is wrong 🙄")
+        return 0
     }
 }

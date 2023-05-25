@@ -1,5 +1,14 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client(
+  {
+    intents: [GatewayIntentBits.Guilds],
+    autofetch: [
+      'MESSAGE_CREATE',
+      'MESSAGE_UPDATE',
+      'MESSAGE_REACTION_ADD',
+      'MESSAGE_REACTION_REMOVE',
+    ]
+  });
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -7,7 +16,6 @@ client.on('ready', () => {
     const eventFile = require(`./register2.js`);
     // But first check if it's an event emitted once
     if (eventFile.once)
-      console.log("hello")
       eventFile.invoke(client);
   });
 
@@ -19,7 +27,11 @@ client.on('interactionCreate', async (interaction) => {
       delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
 
       let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
-      commandFile.run(client, interaction);
+      var resCode = await commandFile.run(client, interaction);
+
+      if (resCode == 0) {
+        interaction.editReply("I'm sorry, I couldn't achieve that...")
+      }
 
     } catch (e) {
         console.log(e.name);
