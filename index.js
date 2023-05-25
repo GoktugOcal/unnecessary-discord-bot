@@ -36,11 +36,11 @@ client.on('interactionCreate', async (interaction) => {
     } catch (e) {
         console.log(e.name);
         if (e.name === "Error") {
-            await interaction.reply("Yanlış komut girdin dostum " + "🧐" + "\n`.help` yazarak komutları görebilirsin.")
+            await interaction.editReply("Yanlış komut girdin dostum " + "🧐" + "\n`.help` yazarak komutları görebilirsin.")
             console.log(e.stack)
         } else {
             console.log(e.stack)
-            await interaction.reply("Bir şeyler ters gitti 😱")
+            await interaction.editReply("Bir şeyler ters gitti 😱")
         }
     }
   
