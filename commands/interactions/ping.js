@@ -10,8 +10,5 @@ exports.create = () => {
 }
 
 exports.run = async (client, interaction) => {
-    // await interaction.reply("pong!");
-    await interaction.deferReply();
-    await interaction.deleteReply();
-    await interaction.channel.send("dummy message");
+    await interaction.reply("pong!");
 }

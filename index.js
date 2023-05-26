@@ -11,12 +11,15 @@ const client = new Client(
   });
 
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`Execution started...`);
 
-    const eventFile = require(`./register2.js`);
-    // But first check if it's an event emitted once
-    if (eventFile.once)
-      eventFile.invoke(client);
+  const eventFile = require(`./register2.js`);
+  // But first check if it's an event emitted once
+  if (eventFile.once)
+    eventFile.invoke(client);
+
+  console.log(`Logged in as ${client.user.tag}!`);
+
   });
 
 
@@ -29,19 +32,11 @@ client.on('interactionCreate', async (interaction) => {
       let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
       var resCode = await commandFile.run(client, interaction);
 
-      if (resCode == 0) {
-        interaction.editReply("I'm sorry, I couldn't achieve that...")
-      }
 
     } catch (e) {
         console.log(e.name);
-        if (e.name === "Error") {
-            await interaction.editReply("Yanlış komut girdin dostum " + "🧐" + "\n`.help` yazarak komutları görebilirsin.")
-            console.log(e.stack)
-        } else {
-            console.log(e.stack)
-            await interaction.editReply("Bir şeyler ters gitti 😱")
-        }
+        console.log(e.stack);        
+
     }
   
 

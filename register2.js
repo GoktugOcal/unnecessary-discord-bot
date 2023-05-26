@@ -17,5 +17,5 @@ exports.invoke = async (client) => {
 
     client.application.commands.set(commandsArray);
 
-    console.log(`Successfully logged in as ${client.user.tag}!`);
+    console.log(`Commands are succesfully created...`);
 }
