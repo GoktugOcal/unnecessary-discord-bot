@@ -27,34 +27,28 @@ client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 
     try {
-      delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
+      // delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
 
-      let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
-      var resCode = await commandFile.run(client, interaction);
+      if (!interaction.isButton()) {
+        let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
+        var resCode = await commandFile.run(client, interaction);
 
-
+        if (resCode == 0) { 
+          interaction.editReply("Sorry... I have failed :(")
+        }
+      }
+      else if (interaction.isButton()) {
+        console.log("Button clicked...")
+      }
+      else {
+        throw new Error('Not a command or button interaction...');
+      }
+      
+      
     } catch (e) {
-        console.log(e.name);
+        console.log("####### ERROR : " + e.name);
         console.log(e.stack);        
-
     }
-  
-
-
-
-
-    // if (interaction.commandName === 'randomice') {
-    //   await interaction.reply(
-    //     options[Math.floor(Math.random() * options.length)]
-    //   );
-    // }
-
-    // else if (interaction.commandName === 'ping') {
-    //     await interaction.reply(
-    //         "pong!"
-    //     )
-    // }
-
   });
 
 client.login(process.env.TOKEN);
