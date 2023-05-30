@@ -236,7 +236,7 @@ async function rank_information (client, interaction, followUpReply = false) {
                     row.components[0].setDisabled(true)
                     await interaction.editReply({components: [row]})
                     // follow-up message
-                    latest_matches(client, interaction, followUpReply = true)                
+                    latest_matches(client, interaction, 0, followUpReply = true)                
                 }
             ).catch( async collected => {
                     console.log(collected)
@@ -244,7 +244,7 @@ async function rank_information (client, interaction, followUpReply = false) {
                     row.components[0].setDisabled(true)
                     await interaction.editReply({components: [row]})
                     // follow-up message
-                    await interaction.followUp('Looks like nobody got the answer this time.');
+                    // await interaction.followUp('Looks like nobody got the answer this time.');
                 }
             );
 
