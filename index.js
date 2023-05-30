@@ -1,16 +1,23 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits } = require('discord.js');
+
 const client = new Client(
   {
-    intents: [GatewayIntentBits.Guilds],
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages
+    ],
     autofetch: [
       'MESSAGE_CREATE',
       'MESSAGE_UPDATE',
       'MESSAGE_REACTION_ADD',
       'MESSAGE_REACTION_REMOVE',
-    ]
+    ],
+    partials: ['MESSAGE', 'CHANNEL', 'REACTION']
   });
 
-client.on('ready', () => {
+// client.commands = new Collection();
+
+client.on(Events.ClientReady, () => {
   console.log(`Execution started...`);
 
   const eventFile = require(`./register2.js`);
@@ -23,25 +30,30 @@ client.on('ready', () => {
   });
 
 
-client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isCommand()) return;
+client.on(Events.InteractionCreate, async (interaction) => {
 
     try {
-      // delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
 
-      if (!interaction.isButton()) {
+      if (interaction.isCommand()) { // If the Interaction is a COMMAND
+        console.log("Command received...")
+
+        delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
+
         let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
         var resCode = await commandFile.run(client, interaction);
 
         if (resCode == 0) { 
           interaction.editReply("Sorry... I have failed :(")
         }
-      }
-      else if (interaction.isButton()) {
+      }/*
+      else if (interaction.isButton()) {  // If the Interaction is a BUTTON
         console.log("Button clicked...")
-      }
+        console.log(interaction.id)
+        interaction.reply("It's Dangerous to go Alone... 🛡️ Go into `Interactions/Buttons/Test-Button.js` to edit this text.")
+      }*/
       else {
-        throw new Error('Not a command or button interaction...');
+        return;
+        // throw new Error('Not a command or button interaction...');
       }
       
       
