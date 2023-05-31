@@ -536,13 +536,9 @@ async function latest_matches (client, interaction, message, start, followUpRepl
                 console.log(`${i.user.id} clicked on the ${i.customId} button.`);
 
                 if (i.customId == "previousPageButton") {
-                    for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
-                    for (i = 0; i < row2.components.length; i++) { row2.components[i].setDisabled(true) }
                     await message.edit({ components: [loading_row] })
                     await latest_matches(client, interaction, message, start - matchCount)
                 } else if (i.customId == "nextPageButton") {
-                    for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
-                    for (i = 0; i < row2.components.length; i++) { row2.components[i].setDisabled(true) }
                     await message.edit({ components: [loading_row] })
                     await latest_matches(client, interaction, message, start + matchCount)
                 } else {
@@ -553,15 +549,13 @@ async function latest_matches (client, interaction, message, start, followUpRepl
                             match_stats_helper(client, interaction, gameId, followUpReply = true, primer_embed = embeds[item.id + 1])
                         }
                     })
-                    for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
-                    for (i = 0; i < row2.components.length; i++) { row2.components[i].setDisabled(true) }
-                    await interaction.editReply({ components: [timeout_row] })
+                    await message.edit({ components: [timeout_row] })
                 }
             }
         ).catch( async collected => {
                 console.log(collected)
                 for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
-                interaction.editReply({ components: [timeout_row] })
+                message.edit({ components: [timeout_row] })
             }
         );
 
