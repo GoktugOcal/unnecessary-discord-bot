@@ -109,26 +109,30 @@ exports.create = () => {
 
 exports.run = async (client, interaction) => {
 
-    await interaction.deferReply()
+    let message = await interaction.deferReply(
+        {
+            fetchReply: true
+        }
+    )
 
     const subcommandGroup = interaction.options.getSubcommandGroup()
     const subcommand = interaction.options.getSubcommand()
 
     if (subcommandGroup == "summoner") {
         if (subcommand == "rank") {
-            return rank_information(client, interaction)
+            return rank_information(client, interaction, message)
         }
     } else if (subcommandGroup == "matches") {
         if (subcommand == "latest") {
-            return latest_matches(client, interaction, 0)
+            return latest_matches(client, interaction, message, 0)
         }
         else if (subcommand == "stats") {
-            return match_stats(client, interaction)
+            return match_stats(client, interaction, message)
         }
     }
 }
 
-async function rank_information (client, interaction, followUpReply = false) {
+async function rank_information (client, interaction, message, followUpReply = false) {
     cdnVersion = JSON.parse(request('GET', "https://ddragon.leagueoflegends.com/api/versions.json").getBody('utf8'))[0]
     apikey = process.env.RIOT_API;
     summonerName = interaction.options.getString('summoner-name')
@@ -236,7 +240,7 @@ async function rank_information (client, interaction, followUpReply = false) {
                     row.components[0].setDisabled(true)
                     await interaction.editReply({components: [row]})
                     // follow-up message
-                    latest_matches(client, interaction, 0, followUpReply = true)                
+                    latest_matches(client, interaction, message, 0, followUpReply = true)                
                 }
             ).catch( async collected => {
                     console.log(collected)
@@ -256,7 +260,7 @@ async function rank_information (client, interaction, followUpReply = false) {
     }
 }
 
-async function latest_matches (client, interaction, start, followUpReply = false) {
+async function latest_matches (client, interaction, message, start, followUpReply = false) {
 
     var regions = require('../../data/regions.json')
 
@@ -469,7 +473,6 @@ async function latest_matches (client, interaction, start, followUpReply = false
             );
         
         // row 2 - match stats buttons
-
         const row2 = new Discord.ActionRowBuilder()
         button_emojis.map( item => {
             row2.addComponents(
@@ -479,6 +482,26 @@ async function latest_matches (client, interaction, start, followUpReply = false
                     .setEmoji(item.emoji)
             )
         })
+        // loading button
+        const loading_row = new Discord.ActionRowBuilder()
+            .addComponents(
+                new Discord.ButtonBuilder()
+                    .setCustomId("loading")
+                    .setLabel('Loading')
+                    .setStyle(Discord.ButtonStyle.Secondary)
+                    .setEmoji('🚬')
+                    .setDisabled(true)
+            )
+        // time-out button
+        const timeout_row = new Discord.ActionRowBuilder()
+            .addComponents(
+                new Discord.ButtonBuilder()
+                    .setCustomId("timeOut")
+                    .setLabel('Time Out')
+                    .setStyle(Discord.ButtonStyle.Secondary)
+                    .setEmoji('⌛')
+                    .setDisabled(true)
+            )
         
         replyMessage =  {
             embeds: embeds,
@@ -487,14 +510,15 @@ async function latest_matches (client, interaction, start, followUpReply = false
         };
 
         if (followUpReply) { 
-            var message = await interaction.followUp(
+            var message = await message.reply(
                 replyMessage
                 )
         } else {
-            var message = await interaction.editReply(
+            var message = await message.edit(
                 replyMessage
                 )
         }
+        
 
         // set collector and run
         const collectorFilter = i => {
@@ -505,7 +529,7 @@ async function latest_matches (client, interaction, start, followUpReply = false
         message.awaitMessageComponent(
             {
                 componentType: Discord.ComponentType.Button,
-                time: 60 * 1000,
+                time: 10 * 1000,
                 filter: collectorFilter
             }
         ).then( async i =>  {
@@ -514,13 +538,13 @@ async function latest_matches (client, interaction, start, followUpReply = false
                 if (i.customId == "previousPageButton") {
                     for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
                     for (i = 0; i < row2.components.length; i++) { row2.components[i].setDisabled(true) }
-                    await interaction.editReply({ components: [row, row2] })
-                    await latest_matches(client, interaction, start - matchCount)
+                    await message.edit({ components: [loading_row] })
+                    await latest_matches(client, interaction, message, start - matchCount)
                 } else if (i.customId == "nextPageButton") {
                     for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
                     for (i = 0; i < row2.components.length; i++) { row2.components[i].setDisabled(true) }
-                    await interaction.editReply({ components: [row, row2] })
-                    await latest_matches(client, interaction, start + matchCount)
+                    await message.edit({ components: [loading_row] })
+                    await latest_matches(client, interaction, message, start + matchCount)
                 } else {
                     button_emojis.map( item => {
                         if (i.customId == item.label)
@@ -531,13 +555,13 @@ async function latest_matches (client, interaction, start, followUpReply = false
                     })
                     for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
                     for (i = 0; i < row2.components.length; i++) { row2.components[i].setDisabled(true) }
-                    await interaction.editReply({ components: [row, row2] })
+                    await interaction.editReply({ components: [timeout_row] })
                 }
             }
         ).catch( async collected => {
                 console.log(collected)
                 for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
-                interaction.editReply({ components: [row] })
+                interaction.editReply({ components: [timeout_row] })
             }
         );
 
@@ -550,7 +574,7 @@ async function latest_matches (client, interaction, start, followUpReply = false
     }
 }
 
-async function match_stats (client, interaction) {
+async function match_stats (client, interaction, message) {
 
     gameId = interaction.options.getString('match-id')
 

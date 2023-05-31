@@ -14,21 +14,37 @@ exports.create = () => {
 
 exports.run = async (client, interaction) => {
 
-    await interaction.deferReply()
+    /*
+    await client.guilds.cache.map(guild => {
+        client.guilds.fetch(guild.id)
+        guild.channels.cache.map( channel => {
+            guild.channels.fetch(channel.id)
+        })
+    })*/
 
-    const chart = new QuickChart();
-    chart.setConfig({
-        type: 'bar',
-        data: { labels: ['Hello world', 'Foo bar'], datasets: [{ label: 'Foo', data: [1, 2] }] },
-    });
+    /*
+    await client.guilds.cache.map(guild => {
+        client.guilds.get(guild.id).channels.cache.map( channel => {
+            client.guilds.get(guild.id).channels.cache.get(channel.id).messages
+        })
+    })
+        
+    /*
+    await client.channels.cache.get(data[guild.id]).messages.fetch()
 
-    const url = await chart.getShortUrl();
+    await client.channels.cache.map(channel => client.channels.fetch(channel.id))
 
-    await interaction.editReply(
-        { files: [
-            {attachment: url, name: "image.jpg"},
-            ]
+    const Guilds = client.guilds.cache.map(guild => guild.id);
+    */
+    var message = await interaction.reply(
+        {
+            content: "Trial success!",
+            fetchReply: true
         }
-    );
+    )
+    
+    //await message.fetch()
+
+    message.reply("and this is the reply")
 
 }

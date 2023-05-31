@@ -1,4 +1,4 @@
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits, Partials } = require('discord.js');
 
 const client = new Client(
   {
@@ -12,13 +12,18 @@ const client = new Client(
       'MESSAGE_REACTION_ADD',
       'MESSAGE_REACTION_REMOVE',
     ],
-    partials: ['MESSAGE', 'CHANNEL', 'REACTION']
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction]
   });
 
 // client.commands = new Collection();
 
 client.on(Events.ClientReady, () => {
   console.log(`Execution started...`);
+
+  client.user.setPresence({
+    game: { name: '.help' },
+    status: 'online',
+   });
 
   const eventFile = require(`./register2.js`);
   // But first check if it's an event emitted once
