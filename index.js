@@ -25,7 +25,7 @@ client.on(Events.ClientReady, () => {
     status: 'online',
    });
 
-  const eventFile = require(`./register2.js`);
+  const eventFile = require(`./src/register_commands.js`);
   // But first check if it's an event emitted once
   if (eventFile.once)
     eventFile.invoke(client);
@@ -42,9 +42,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (interaction.isCommand()) { // If the Interaction is a COMMAND
         console.log("Command received...")
 
-        delete require.cache[require.resolve(`./commands/interactions/${interaction.commandName}.js`)];
+        delete require.cache[require.resolve(`./src/commands/interactions/${interaction.commandName}.js`)];
 
-        let commandFile = require(`./commands/interactions/${interaction.commandName}.js`);
+        let commandFile = require(`./src/commands/interactions/${interaction.commandName}.js`);
         var resCode = await commandFile.run(client, interaction);
 
         if (resCode == 0) { 
