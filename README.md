@@ -20,3 +20,4 @@ TOKEN = {YOUR_BOT_TOKEN}
 Resources: 
 - [https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/](https://daily-dev-tips.com/posts/creating-a-discord-slash-command-bot/)
 - [https://www.youtube.com/watch?v=HBt8MXHcaPI](https://www.youtube.com/watch?v=HBt8MXHcaPI)
+- [https://github.com/jeffreyflynt/node-bard](https://github.com/jeffreyflynt/node-bard)

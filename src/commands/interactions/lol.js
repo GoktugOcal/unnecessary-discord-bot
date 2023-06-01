@@ -6,9 +6,6 @@ var lolHelper = require('../../helpers/lol_helper.js')
 var lolButtons = require('../../helpers/lol_buttons.js');
 const lol_helper = require('../../helpers/lol_helper.js');
 
-
-
-
 exports.create = () => {
     const command = new Discord.SlashCommandBuilder()
         .setName("lol")
