@@ -2,6 +2,11 @@ const request = require('sync-request');
 const Discord = require('discord.js');
 const fs = require('fs')
 const QuickChart = require('quickchart-js');
+var lolHelper = require('../../helpers/lol_helper.js')
+var lolButtons = require('../../helpers/lol_buttons.js');
+const lol_helper = require('../../helpers/lol_helper.js');
+
+
 
 
 exports.create = () => {
@@ -115,468 +120,328 @@ exports.run = async (client, interaction) => {
         }
     )
 
-    const subcommandGroup = interaction.options.getSubcommandGroup()
-    const subcommand = interaction.options.getSubcommand()
-
-    if (subcommandGroup == "summoner") {
-        if (subcommand == "rank") {
-            return rank_information(client, interaction, message)
+    try {    
+        const subcommandGroup = interaction.options.getSubcommandGroup()
+        const subcommand = interaction.options.getSubcommand()
+    
+        if (subcommandGroup == "summoner") {
+            if (subcommand == "rank") {
+                return rank_information(client, interaction, message)
+            }
+        } else if (subcommandGroup == "matches") {
+            if (subcommand == "latest") {
+                return latest_matches(client, interaction, message, 0)
+            }
+            else if (subcommand == "stats") {
+                return match_stats(client, interaction, message)
+            }
         }
-    } else if (subcommandGroup == "matches") {
-        if (subcommand == "latest") {
-            return latest_matches(client, interaction, message, 0)
-        }
-        else if (subcommand == "stats") {
-            return match_stats(client, interaction, message)
-        }
+    } catch {
+        message.edit("Something is wrong 👨‍💻");
+        return 0;
     }
+
+    
 }
 
 async function rank_information (client, interaction, message, followUpReply = false) {
-    cdnVersion = JSON.parse(request('GET', "https://ddragon.leagueoflegends.com/api/versions.json").getBody('utf8'))[0]
+    
     apikey = process.env.RIOT_API;
     summonerName = interaction.options.getString('summoner-name')
     region = interaction.options.getString('summoner-region')
 
-    var summonerInfo = request('GET', 'https://' + region + '.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + summonerName + '?api_key=' + apikey)
-    if (summonerInfo.statusCode === 200) {
-        summonerInfo = JSON.parse(summonerInfo.getBody('utf8'))
-        let summonerID = summonerInfo['id'];
-        let summonerIconID = summonerInfo['profileIconId'];
+    var cdnVersion = lolHelper.get_cdn_version() // RIOT API
+    var summonerInfo = lolHelper.get_summoner_info(summonerName, region, apikey) // RIOT API
 
-        var rankInfo = request('GET', 'https://' + region + '.api.riotgames.com/lol/league/v4/entries/by-summoner/' + summonerID + '?api_key=' + apikey)
+    let summonerId = summonerInfo['id'];
+    let summonerIconID = summonerInfo['profileIconId'];
 
-        if (rankInfo.getBody('utf8') === "[]") {
-            await interaction.editReply("You don't have a rank 😫 play some LOL")
-        } else {
-            rankInfo = JSON.parse(rankInfo.getBody('utf8'))
-            if(rankInfo.length > 1){
-                var exampleEmbed = new Discord.EmbedBuilder()
-                    .setColor('#FF5733')
-                    .setTitle(rankInfo[0]["summonerName"])
-                    .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
-                    .setDescription("Level : " + summonerInfo["summonerLevel"])
-                    .addFields(
-                        { name: '`Ranked Solo` ' + rankInfo[0]["tier"] + " " + rankInfo[0]["rank"], value: "-----"}
-                    )
-                    .addFields(
-                        { name: 'Wins', value: rankInfo[0]["wins"].toString(), inline: true },
-                        { name: 'Losses', value: rankInfo[0]["losses"].toString(), inline: true },
-                        { name: 'Hot Streak', value: rankInfo[0]["hotStreak"].toString(), inline: true },
-                        { name: 'League Points', value: rankInfo[0]["leaguePoints"].toString(), inline: true }
-                        )
-                    .addFields(
-                        { name: '`Ranked Flex` ' + rankInfo[1]["tier"] + " " + rankInfo[1]["rank"], value: "-----"}
-                    )
-                    .addFields(
-                        { name: 'Wins', value: rankInfo[1]["wins"].toString(), inline: true },
-                        { name: 'Losses', value: rankInfo[1]["losses"].toString(), inline: true },
-                        { name: 'Hot Streak', value: rankInfo[1]["hotStreak"].toString(), inline: true },
-                        { name: 'League Points', value: rankInfo[1]["leaguePoints"].toString(), inline: true }
-                        )
-                    .setFooter(
-                        { text: "heil to the lord", iconURL: client.user.avatarURL()}
-                        );
-            }
-            else{
-                console.log("$")
-                console.log(rankInfo.length)
-                var exampleEmbed = new Discord.EmbedBuilder()
-                    .setColor('#FF5733')
-                    .setTitle(rankInfo[0]["summonerName"])
-                    .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
-                    .setDescription("Level : " + summonerInfo["summonerLevel"])
-                    .addFields(
-                        { name: '`Ranked Solo` ' + rankInfo[0]["tier"] + " " + rankInfo[0]["rank"], value: rankInfo[0]["tier"].toLowerCase()}
-                    )
-                    .addFields(
-                        { name: 'Wins', value: rankInfo[0]["wins"].toString(), inline: true },
-                        { name: 'Losses', value: rankInfo[0]["losses"].toString(), inline: true },
-                        { name: 'Hot Streak', value: rankInfo[0]["hotStreak"].toString(), inline: true },
-                        { name: 'League Points', value: rankInfo[0]["leaguePoints"].toString(), inline: true }
-                        )
-                    .setFooter(
-                        { text: "heil to the lord", iconURL: client.user.avatarURL()}
-                        );    
-            }
+    var rankInfo = lolHelper.get_league_info(summonerId, region, apikey) // RIOT API
 
-            
-            // add button
-            const lastMatchesButton = new Discord.ButtonBuilder()
-                .setCustomId('lastMatchesButton')
-                .setLabel('Look at the last 5 matches')
-                .setStyle(Discord.ButtonStyle.Secondary)
-                .setEmoji("⚔");
-
-            const row = new Discord.ActionRowBuilder()
-                .addComponents(
-                    lastMatchesButton
-                );
-
-            // reply the interaction            
-            let message = await interaction.editReply(
-                {
-                    embeds: [exampleEmbed],
-                    components: [row],
-                    fetchReply: true
-                }
-            )
-            
-            // set collector and run
-            const collectorFilter = i => {
-                i.deferUpdate();
-                return i.user.id === interaction.user.id;
-            };
-
-            message.awaitMessageComponent(
-                {
-                    componentType: Discord.ComponentType.Button,
-                    time: 60 * 1000,
-                    filter: collectorFilter
-                }
-            ).then( async i =>  {
-                    console.log(`${i.user.id} clicked on the ${i.customId} button.`);
-                    // set button disabled
-                    row.components[0].setDisabled(true)
-                    await interaction.editReply({components: [row]})
-                    // follow-up message
-                    latest_matches(client, interaction, message, 0, followUpReply = true)                
-                }
-            ).catch( async collected => {
-                    console.log(collected)
-                    // set button disabled
-                    row.components[0].setDisabled(true)
-                    await interaction.editReply({components: [row]})
-                    // follow-up message
-                    // await interaction.followUp('Looks like nobody got the answer this time.');
-                }
-            );
-
-            return 1
-        }
+    if (rankInfo.length === 0) {
+        await interaction.editReply("You don't have a rank 😫 play some LOL")
+        return 1
     } else {
-        await interaction.editReply("Something is wrong 🙄")
-        return 0
+        // Generate the embed message
+        var exampleEmbed = new Discord.EmbedBuilder()
+            .setColor('#FF5733')
+            .setTitle(rankInfo[0]["summonerName"])
+            .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
+            .setDescription("Level : " + summonerInfo["summonerLevel"])
+            .setFooter(
+                { text: "heil to the lord", iconURL: client.user.avatarURL()}
+                )
+        
+        for (idx = 0; idx < rankInfo.length; idx++) {
+            exampleEmbed
+                .addFields(
+                    { name: '`' + rankInfo[idx]["queueType"].replace(/_/g, ' ') + '` ' + rankInfo[idx]["tier"] + " " + rankInfo[idx]["rank"], value: "-----"}
+                )
+                .addFields(
+                    { name: 'Wins', value: rankInfo[idx]["wins"].toString(), inline: true },
+                    { name: 'Losses', value: rankInfo[idx]["losses"].toString(), inline: true },
+                    { name: 'Hot Streak', value: rankInfo[idx]["hotStreak"].toString(), inline: true },
+                    { name: 'League Points', value: rankInfo[idx]["leaguePoints"].toString(), inline: true }
+                    )
+        };
     }
+
+    // Get the button for last matches
+    const row = lolButtons.generateLastMatchButton()
+
+    // reply the interaction            
+    var message = await interaction.editReply(
+        {
+            embeds: [exampleEmbed],
+            components: [row],
+            fetchReply: true
+        }
+    );
+    
+    // set collector and run
+    const collectorFilter = i => {
+        i.deferUpdate();
+        return i.user.id === interaction.user.id;
+    };
+
+    message.awaitMessageComponent(
+        {
+            componentType: Discord.ComponentType.Button,
+            time: 60 * 1000,
+            filter: collectorFilter
+        }
+    ).then( async i =>  {
+            console.log(`${i.user.username} (${i.user.id}) clicked on the ${i.customId} button.`);
+            // set button disabled
+            row.components[0].setDisabled(true)
+            await interaction.editReply({components: [row]})
+            // follow-up message
+            latest_matches(client, interaction, message, 0, followUpReply = true)                
+        }
+    ).catch( async collected => {
+            console.log(collected)
+            // set button disabled
+            row.components[0].setDisabled(true)
+            await interaction.editReply({components: [row]})
+        }
+    );
+
+    return 1
 }
 
 async function latest_matches (client, interaction, message, start, followUpReply = false) {
 
-    var regions = require('../../data/regions.json')
-
-    cdnVersion = JSON.parse(request('GET', "https://ddragon.leagueoflegends.com/api/versions.json").getBody('utf8'))[0]
     apikey = process.env.RIOT_API;
     summonerName = interaction.options.getString('summoner-name')
     platform = interaction.options.getString('summoner-region')
-    region = regions[platform]
     matchCount = 5
 
-    heroes = {}
-    heroData = JSON.parse(request('GET', "http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/data/en_US/champion.json").getBody('utf8'))["data"]
-    Object.keys(heroData).map(function(key, index) {
-        heroes[heroData[key]["key"]] = key
-    })
+    var regions = require('../../data/regions.json')
+    region = regions[platform]
 
-    var summonerInfo = request('GET', 'https://' + platform + '.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + summonerName + '?api_key=' + apikey)
+    var cdnVersion = lolHelper.get_cdn_version() // RIOT API
+    var summonerInfo = lolHelper.get_summoner_info(summonerName, platform, apikey) // RIOT API 
     
-    if (summonerInfo.statusCode === 200) {
-        summonerInfo = JSON.parse(summonerInfo.getBody('utf8'))
-        let summonerID = summonerInfo['id'];
-        let summonerIconID = summonerInfo['profileIconId'];
-        let accountID = summonerInfo['accountId']
-        let puuid = summonerInfo['puuid']
+    let summonerID = summonerInfo['id'];
+    let summonerIconID = summonerInfo['profileIconId'];
+    let accountID = summonerInfo['accountId']
+    let puuid = summonerInfo['puuid']
 
-        var matchList = request('GET', 'https://' + region + '.api.riotgames.com/lol/match/v5/matches/by-puuid/' + puuid + '/ids?api_key=' + apikey + "&start="+ start.toString() +"&count=" + matchCount)
-        matchIdList = JSON.parse(matchList.getBody('utf8'))
-        lastMatch = matchIdList[0]
+    var matchIdList = lol_helper.get_latest_matches(puuid, region, start, matchCount, apikey) // RIOT API
+    lastMatch = matchIdList[0]
 
-        matches = []
-        var noWins = 0
-        var noLoses = 0
+    var matches = []
+    var noWins = 0
+    var noLoses = 0
+    var embeds = []
+    var idxCounter = start
+    var button_emojis = lolButtons.stats_button_info
 
-        for (i = 0; i < matchCount; i++) {
-            gameId = matchIdList[i]
-            var matchStats = request('GET', 'https://' + region + '.api.riotgames.com/lol/match/v5/matches/' + gameId + '?api_key=' + apikey)
-            matchStats = JSON.parse(matchStats.getBody('utf8'))
+    for (i = 0; i < matchCount; i++) {
 
-            summonerStats = null
-            participantIdentities = matchStats["info"]["participants"].map(item => {
-                if (item["summonerId"] === summonerID) {
-                    summonerStats = matchStats["info"]["participants"][item["participantId"] - 1]
-                }
-            })
+        gameId = matchIdList[i]
+        var matchStats = lolHelper.get_match_info(gameId, region, apikey) // RIOT API
+        var summonerStats = null
 
-            if (summonerStats["win"] === true) { 
-                result = "Win :white_check_mark:"
-                result = "win"
-                noWins += 1
+        participantIdentities = matchStats["info"]["participants"].map(item => {
+            if (item["summonerId"] === summonerID) {
+                summonerStats = matchStats["info"]["participants"][item["participantId"] - 1]
             }
-            else {
-                result = "Lose :red_circle:"
-                result = "lose"
-                noLoses += 1
-            }
-
-            const date= new Date(matchStats["info"]["gameStartTimestamp"]);
-            dateFormat = date.getHours() + ":" + date.getMinutes() + ", "+ date.toDateString();
-            
-            matches[i] = {
-                "gameMode": matchStats["info"]["gameMode"],
-                "champion": heroes[summonerStats["championId"].toString()],
-                "result": result,
-                "kills": summonerStats["kills"],
-                "assists": summonerStats["assists"],
-                "deaths": summonerStats["deaths"],
-                "kda" : summonerStats["challenges"]["kda"],
-                "totalDamageDealtToChampions" : summonerStats["totalDamageDealtToChampions"],
-                "damageDealtToBuildings" : summonerStats["damageDealtToBuildings"],
-                "gameStartTime" : dateFormat,
-                "matchId" : matchStats["metadata"]["matchId"]
-            }
-        }
-
-        embeds = []
-        var idxCounter = start
-        button_emojis = [
-            {
-                id: 0,
-                label: "buttonA",
-                emoji: "🇦"
-            },
-            {
-                id: 1,
-                label: "buttonB",
-                emoji: "🇧"
-            },
-            {
-                id: 2,
-                label: "buttonC",
-                emoji: "🇨"
-            },
-            {
-                id: 3,
-                label: "buttonD",
-                emoji: "🇩"
-            },
-            {
-                id: 4,
-                label: "buttonE",
-                emoji: "🇪"
-            }
-        ]
-        
-        const profile = new Discord.EmbedBuilder()
-            .setColor('#964C96')
-            .setTitle(summonerInfo["name"])
-            .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
-            .setDescription(
-                "These are the your games from " + (start + 1).toString() + "th to " + (start + matchCount).toString() + "th.\n" + 
-                "You can look at your KDAs for last matches. \n" +
-                "📊 If you want to look at the statistics of a game, select from the letter buttons below."
-            )
-            .addFields(
-                { name: ":white_check_mark: Total Wins", value: "```" + noWins.toString() + "```", inline: true},
-                { name: ":red_circle: Total Loses", value: "```" + noLoses.toString() + "```", inline: true}
-            )
-        embeds.push(profile)
-        for (i = 0; i < matches.length; i++) {
-
-            if (matches[i]["result"] == "win") {
-                var logo = ":white_check_mark:"
-            } else {
-                var logo = ":red_circle:"
-            }
-
-            const matchEmbed = new Discord.EmbedBuilder()
-                .setColor('#964C96')
-                .setTitle("" + (idxCounter + 1) + " | " + matches[i]["gameMode"] + " | " + matches[i]["champion"])
-                .setDescription("" + logo + " " + matches[i]["result"].toUpperCase() + " | `" +  matches[i]["gameStartTime"] + "`")
-                .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/champion/" + matches[i]["champion"] + ".png")
-                .addFields(
-                    { name: "Kill", value: "```" + matches[i]["kills"].toString() + "```", inline: true},
-                    { name: "Death", value: "```" + matches[i]["deaths"].toString() + "```", inline: true},
-                    { name: "Assists", value: "```" + matches[i]["assists"].toString() + "```", inline: true}
-                )
-                .addFields(
-                    {
-                        name: button_emojis[i].emoji + " Stats",
-                        value: "`" + " KDA : " +  Math.round(matches[i]["kda"] * 100) / 100 + "\n" +
-                            " Damage to Champs : " + matches[i]["totalDamageDealtToChampions"] + "\n" +
-                            " Damage to Buildings : " + matches[i]["damageDealtToBuildings"] + "`"
-
-                    }
-                )
-                .setFooter(
-                    { text: "Match ID : " + matches[i]["matchId"], iconURL: client.user.avatarURL()}
-                    ) 
-            embeds.push(matchEmbed)
-            idxCounter++
-        }
-
-        /*
-        const exampleEmbed = new Discord.EmbedBuilder()
-            .setColor('#964C96')
-            .setTitle(summonerInfo["name"] + " - Last Games ( page " + (start/5+1).toString() + " )")
-            .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
-            .setDescription(
-                "These are the your games from " + (start + 1).toString() + "th to " + (start + matchCount).toString() + "th.\n" + 
-                "You can look at your KDAs for last matches. \n" +
-                "📊 If you want to look at the statistics of a game, select from the letter buttons below.")
-            .addFields(
-                { name: ":white_check_mark: Total Wins", value: "```" + noWins.toString() + "```", inline: true},
-                { name: ":red_circle: Total Loses", value: "```" + noLoses.toString() + "```", inline: true}
-            
-            ).setFooter(
-                { text: "heil to the lord", iconURL: client.user.avatarURL()}
-                );
-        
-        for (i = 0; i < matches.length; i++) {
-            if (matches[i]["result"] == "win") {
-                var logo = ":white_check_mark:"
-            } else {
-                var logo = ":red_circle:"
-            }
-            exampleEmbed.addFields(
-                {
-                    name: "" + (idxCounter + 1) + " | " + logo +" | " + matches[i]["gameMode"] + " | \t" + matches[i]["champion"],
-                    value: " `  K: "+ matches[i]["kills"].toString() +"  `" +
-                    "  `  D: "+ matches[i]["deaths"].toString() +"  `" +
-                    "  `  A: "+ matches[i]["assists"].toString() +"  `" +
-                    "\n" +
-                    "`Match played at " + matches[i]["gameStartTime"] + "`" +
-                    "\n" +
-                    "`Match ID : " + matches[i]["matchId"] + "`",
-                }
-            )
-            idxCounter++
-        };*/
-
-
-        /////// add buttons
-        // row 1 - pagination buttons
-        const previousPage = new Discord.ButtonBuilder()
-            .setCustomId('previousPageButton')
-            .setLabel('Newer')
-            .setStyle(Discord.ButtonStyle.Secondary)
-            .setEmoji("⏮");
-
-        const nextPage = new Discord.ButtonBuilder()
-            .setCustomId('nextPageButton')
-            .setLabel('Older')
-            .setStyle(Discord.ButtonStyle.Secondary)
-            .setEmoji("⏭");
-
-        const row = new Discord.ActionRowBuilder()
-            .addComponents(
-                previousPage,
-                nextPage
-            );
-        
-        // row 2 - match stats buttons
-        const row2 = new Discord.ActionRowBuilder()
-        button_emojis.map( item => {
-            row2.addComponents(
-                new Discord.ButtonBuilder()
-                    .setCustomId(item.label)
-                    .setStyle(Discord.ButtonStyle.Secondary)
-                    .setEmoji(item.emoji)
-            )
         })
-        // loading button
-        const loading_row = new Discord.ActionRowBuilder()
-            .addComponents(
-                new Discord.ButtonBuilder()
-                    .setCustomId("loading")
-                    .setLabel('Loading')
-                    .setStyle(Discord.ButtonStyle.Secondary)
-                    .setEmoji('🚬')
-                    .setDisabled(true)
-            )
-        // time-out button
-        const timeout_row = new Discord.ActionRowBuilder()
-            .addComponents(
-                new Discord.ButtonBuilder()
-                    .setCustomId("timeOut")
-                    .setLabel('Time Out')
-                    .setStyle(Discord.ButtonStyle.Secondary)
-                    .setEmoji('⌛')
-                    .setDisabled(true)
-            )
-        
-        replyMessage =  {
-            embeds: embeds,
-            components: [row, row2],
-            fetchReply: true
-        };
 
-        if (followUpReply) { 
-            var message = await message.reply(
-                replyMessage
-                )
-        } else {
-            var message = await message.edit(
-                replyMessage
-                )
+        if (summonerStats["win"] === true) { result = "win"; noWins += 1 }
+        else { result = "lose"; noLoses += 1 }
+
+        const date= new Date(matchStats["info"]["gameStartTimestamp"]);
+        dateFormat = date.getHours() + ":" + date.getMinutes() + ", "+ date.toDateString();
+        
+        matches[i] = {
+            "gameMode": matchStats["info"]["gameMode"],
+            "champion": summonerStats["championName"],
+            "result": result,
+            "kills": summonerStats["kills"],
+            "assists": summonerStats["assists"],
+            "deaths": summonerStats["deaths"],
+            "kda" : summonerStats["challenges"]["kda"],
+            "totalDamageDealtToChampions" : summonerStats["totalDamageDealtToChampions"],
+            "damageDealtToBuildings" : summonerStats["damageDealtToBuildings"],
+            "gameStartTime" : dateFormat,
+            "matchId" : matchStats["metadata"]["matchId"]
         }
-        
-
-        // set collector and run
-        const collectorFilter = i => {
-            i.deferUpdate();
-            return i.user.id === interaction.user.id;
-        };
-
-        message.awaitMessageComponent(
-            {
-                componentType: Discord.ComponentType.Button,
-                time: 10 * 1000,
-                filter: collectorFilter
-            }
-        ).then( async i =>  {
-                console.log(`${i.user.id} clicked on the ${i.customId} button.`);
-
-                if (i.customId == "previousPageButton") {
-                    await message.edit({ components: [loading_row] })
-                    await latest_matches(client, interaction, message, start - matchCount)
-                } else if (i.customId == "nextPageButton") {
-                    await message.edit({ components: [loading_row] })
-                    await latest_matches(client, interaction, message, start + matchCount)
-                } else {
-                    button_emojis.map( item => {
-                        if (i.customId == item.label)
-                        {
-                            var gameId = matches[item.id]["matchId"]
-                            match_stats_helper(client, interaction, gameId, followUpReply = true, primer_embed = embeds[item.id + 1])
-                        }
-                    })
-                    await message.edit({ components: [timeout_row] })
-                }
-            }
-        ).catch( async collected => {
-                console.log(collected)
-                for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
-                message.edit({ components: [timeout_row] })
-            }
-        );
-
-        return 1
-    } else {
-        console.log(summonerInfo.statusMessage)
-        await interaction.editReply("Something is wrong 🙄")
-
-        return 0
     }
+
+    const profile = new Discord.EmbedBuilder()
+        .setColor('#964C96')
+        .setTitle(summonerInfo["name"])
+        .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
+        .setDescription(
+            "These are the your games from " + (start + 1).toString() + "th to " + (start + matchCount).toString() + "th.\n" + 
+            "You can look at your KDAs for last matches. \n" +
+            "📊 If you want to look at the statistics of a game, select from the letter buttons below."
+        )
+        .addFields(
+            { name: ":white_check_mark: Total Wins", value: "```" + noWins.toString() + "```", inline: true},
+            { name: ":red_circle: Total Loses", value: "```" + noLoses.toString() + "```", inline: true}
+        )
+    embeds.push(profile)
+    for (i = 0; i < matches.length; i++) {
+        const matchEmbed = new Discord.EmbedBuilder()
+            .setColor('#964C96')
+            .setTitle("" + (idxCounter + 1) + " | " + matches[i]["gameMode"] + " | " + matches[i]["champion"])
+            .setDescription("" + lolButtons.win_or_lose_logo[matches[i]["result"]] + " " + matches[i]["result"].toUpperCase() + " | `" +  matches[i]["gameStartTime"] + "`")
+            .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/champion/" + matches[i]["champion"] + ".png")
+            .addFields(
+                { name: "Kill", value: "```" + matches[i]["kills"].toString() + "```", inline: true},
+                { name: "Death", value: "```" + matches[i]["deaths"].toString() + "```", inline: true},
+                { name: "Assists", value: "```" + matches[i]["assists"].toString() + "```", inline: true}
+            )
+            .addFields(
+                {
+                    name: button_emojis[i].emoji + " Stats",
+                    value: "`" + " KDA : " +  Math.round(matches[i]["kda"] * 100) / 100 + "\n" +
+                        " Damage to Champs : " + matches[i]["totalDamageDealtToChampions"] + "\n" +
+                        " Damage to Buildings : " + matches[i]["damageDealtToBuildings"] + "`"
+                }
+            )
+            .setFooter(
+                { text: "Match ID : " + matches[i]["matchId"], iconURL: client.user.avatarURL()}
+                ) 
+        embeds.push(matchEmbed)
+        idxCounter++
+    }
+
+    /*
+    const exampleEmbed = new Discord.EmbedBuilder()
+        .setColor('#964C96')
+        .setTitle(summonerInfo["name"] + " - Last Games ( page " + (start/5+1).toString() + " )")
+        .setThumbnail("http://ddragon.leagueoflegends.com/cdn/" + cdnVersion + "/img/profileicon/" + summonerIconID + ".png")
+        .setDescription(
+            "These are the your games from " + (start + 1).toString() + "th to " + (start + matchCount).toString() + "th.\n" + 
+            "You can look at your KDAs for last matches. \n" +
+            "📊 If you want to look at the statistics of a game, select from the letter buttons below.")
+        .addFields(
+            { name: ":white_check_mark: Total Wins", value: "```" + noWins.toString() + "```", inline: true},
+            { name: ":red_circle: Total Loses", value: "```" + noLoses.toString() + "```", inline: true}
+        
+        ).setFooter(
+            { text: "heil to the lord", iconURL: client.user.avatarURL()}
+            );
+    
+    for (i = 0; i < matches.length; i++) {
+        if (matches[i]["result"] == "win") {
+            var logo = ":white_check_mark:"
+        } else {
+            var logo = ":red_circle:"
+        }
+        exampleEmbed.addFields(
+            {
+                name: "" + (idxCounter + 1) + " | " + logo +" | " + matches[i]["gameMode"] + " | \t" + matches[i]["champion"],
+                value: " `  K: "+ matches[i]["kills"].toString() +"  `" +
+                "  `  D: "+ matches[i]["deaths"].toString() +"  `" +
+                "  `  A: "+ matches[i]["assists"].toString() +"  `" +
+                "\n" +
+                "`Match played at " + matches[i]["gameStartTime"] + "`" +
+                "\n" +
+                "`Match ID : " + matches[i]["matchId"] + "`",
+            }
+        )
+        idxCounter++
+    };*/
+
+
+    /////// add buttons
+    const paginationRow = lolButtons.generatePaginationButton() // row 1 - pagination buttons
+    const statsRow = lolButtons.generateStatsButton() // row 2 - match stats buttons
+    const loadingRow = lolButtons.generateLoadingButton() // loading button
+    const timeoutRow = lolButtons.generateTimeoutButton() // time-out button
+    
+    replyMessage =  {
+        embeds: embeds,
+        components: [paginationRow, statsRow],
+        fetchReply: true
+    };
+
+    if (followUpReply) { 
+        var message = await message.reply(
+            replyMessage
+            )
+    } else {
+        var message = await message.edit(
+            replyMessage
+            )
+    }
+    
+    // set collector and run
+    const collectorFilter = i => {
+        i.deferUpdate();
+        return i.user.id === interaction.user.id;
+    };
+
+    message.awaitMessageComponent(
+        {
+            componentType: Discord.ComponentType.Button,
+            time: 30 * 1000,
+            filter: collectorFilter
+        }
+    ).then( async i =>  {
+            console.log(`${i.user.id} clicked on the ${i.customId} button.`);
+
+            if (i.customId == "previousPageButton") {
+                await message.edit({ components: [loadingRow] })
+                await latest_matches(client, interaction, message, start - matchCount)
+            } else if (i.customId == "nextPageButton") {
+                await message.edit({ components: [loadingRow] })
+                await latest_matches(client, interaction, message, start + matchCount)
+            } else {
+                button_emojis.map( item => {
+                    if (i.customId == item.label)
+                    {
+                        var gameId = matches[item.id]["matchId"]
+                        match_stats_helper(client, interaction, message, gameId, followUpReply = true, primer_embed = embeds[item.id + 1])
+                    }
+                })
+                await message.edit({ components: [timeoutRow] })
+            }
+        }
+    ).catch( async collected => {
+            console.log(collected)
+            for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
+            message.edit({ components: [timeoutRow] })
+        }
+    );
+
+    return 1
 }
 
 async function match_stats (client, interaction, message) {
 
     gameId = interaction.options.getString('match-id')
 
-    return match_stats_helper(client, interaction, gameId)
+    return match_stats_helper(client, interaction, message, gameId)
  
 }
 
-async function match_stats_helper(client, interaction, gameId, followUpReply = false, primer_embed = null) {
+async function match_stats_helper(client, interaction,message, gameId, followUpReply = false, primer_embed = null) {
 
     var regions = require('../../data/regions.json')
 
@@ -721,14 +586,6 @@ async function match_stats_helper(client, interaction, gameId, followUpReply = f
         .setImage(deadTimeURL)
 
 
-    /*
-    await interaction.editReply(
-        {
-            embeds: [totalDamageChartBreakdownEmbed, deadTimeEmbed]
-        }
-    );
-    */
-
     if (primer_embed == null) {
         replyMessage =  {
             embeds: [
@@ -746,8 +603,8 @@ async function match_stats_helper(client, interaction, gameId, followUpReply = f
         };
     }
 
-    if (followUpReply) { 
-        var message = await interaction.followUp(
+    if (followUpReply) {
+        var message = await message.reply(
             replyMessage
             )
     } else {

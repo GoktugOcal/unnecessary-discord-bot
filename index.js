@@ -64,7 +64,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
     } catch (e) {
         console.log("####### ERROR : " + e.name);
-        console.log(e.stack);        
+        console.log(e.stack);
+        
     }
   });
 
