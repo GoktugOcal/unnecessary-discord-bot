@@ -23,9 +23,11 @@ exports.run = async (client, interaction) => {
             fetchReply: true
         }
     )
+    
+    //"Do not talk just give the answer in maximum 3 sentences. "
+    const prompt = interaction.options.getString('prompt') + " Make it short in 3 sentences."
+    const res = await bard.ask(prompt)
 
-    const prompt = "Do not talk just give the answer in maximum 3 sentences. " + interaction.options.getString('prompt')
-
-    interaction.editReply(await bard.ask())
+    interaction.editReply(res)
 
 }

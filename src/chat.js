@@ -1,20 +1,5 @@
-// const { Configuration, OpenAIApi } = require("openai");
+const bard = require('./helpers/bard.js')
 
-
-// async function chat () {
-//     const configuration = new Configuration(process.env.OPENAI_API);
-//     console.log(process.env.OPENAI_API);
-    
-//     const openai = new OpenAIApi(configuration);
-    
-//     const completion = await openai.createCompletion({
-//       model: "text-davinci-003",
-//       prompt: "Hello world",
-//     });
-//     // console.log(completion.data.choices[0].text);
-// }
-
-// chat();
 
 const fetch = require("node-fetch");
 
@@ -23,7 +8,7 @@ async function chat () {
     "https://bard.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate";
   const Secure1PSID = process.env.Secure1PSID;
   const AT_KEY = process.env.AT_KEY;
-  const PROMPT = "İstanbul nerededir?";
+  const PROMPT = "What is League of Legends?";
 
   const params = new URLSearchParams({
     bl: "boq_assistant-bard-web-server_20230419.00_p1",
@@ -71,4 +56,20 @@ async function chat () {
   console.log(content);
 }
 
-chat()
+// chat()
+
+res = bard.ask("How is the weather in Istanbul?" + " Make it short in 3 sentences.")
+console.log(res)
+
+// import BingChat from 'bing-chat';
+
+// async function example() {
+//   const api = new BingChat({
+//     cookie: "QS=0&TQS=0&cdxndoff=1"
+//   })
+
+//   const res = await api.sendMessage('Hello World!')
+//   console.log(res.text)
+// }
+
+// console.log(example)
