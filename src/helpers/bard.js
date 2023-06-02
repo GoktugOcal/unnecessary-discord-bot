@@ -46,6 +46,7 @@ module.exports = {
 
         const request = await fetch(`${BARD_URL}?${params}`, requestOptions);
         const response = await request.text();
+        console.log(response)
 
         const output = JSON.parse(response.split(/\r?\n/)[3])[0][2];
         const content = JSON.parse(output)[0][0];
