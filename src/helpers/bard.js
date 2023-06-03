@@ -8,9 +8,9 @@ module.exports = {
         const AT_KEY = process.env.AT_KEY;
 
         const params = new URLSearchParams({
-        bl: "boq_assistant-bard-web-server_20230419.00_p1",
-        _reqid: Number(Math.random().toString().slice(2, 8)),
-        rt: "c",
+            bl: "boq_assistant-bard-web-server_20230419.00_p1",
+            _reqid: Number(Math.random().toString().slice(2, 8)),
+            rt: "c",
         });
 
         const messageRequest = [[prompt], null, ["", "", ""]];
@@ -18,12 +18,12 @@ module.exports = {
         const headers = new Headers();
         headers.append("X-Same-Domain", "1");
         headers.append(
-        "User-Agent",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
+            "User-Agent",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
         );
         headers.append(
-        "Content-Type",
-        "application/x-www-form-urlencoded;charset=UTF-8"
+            "Content-Type",
+            "application/x-www-form-urlencoded;charset=UTF-8"
         );
         headers.append("Sec-Fetch-Site", "same-origin");
         headers.append("Sec-Fetch-Mode", "cors");
