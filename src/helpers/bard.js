@@ -33,20 +33,20 @@ module.exports = {
         const urlencoded = new URLSearchParams();
         urlencoded.append("at", AT_KEY);
         urlencoded.append(
-        "f.req",
-        JSON.stringify([null, JSON.stringify(messageRequest)])
+            "f.req",
+            JSON.stringify([null, JSON.stringify(messageRequest)])
         );
 
         const requestOptions = {
-        method: "POST",
-        headers: headers,
-        body: urlencoded,
-        redirect: "follow",
+            method: "POST",
+            headers: headers,
+            body: urlencoded,
+            redirect: "follow",
         };
 
         const request = await fetch(`${BARD_URL}?${params}`, requestOptions);
         const response = await request.text();
-        console.log(request)
+        console.log(JSON.parse(response.split(/\r?\n/)[3]))
 
         const output = JSON.parse(response.split(/\r?\n/)[3])[0][2];
         const content = JSON.parse(output)[0][0];
