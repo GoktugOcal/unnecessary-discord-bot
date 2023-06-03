@@ -1,11 +1,90 @@
-exports.run = (client, message, args) => {
+const Discord = require('discord.js');
+
+exports.create = () => {
+    const command = new Discord.SlashCommandBuilder()
+        .setName("findplayer")
+        .setDescription("Find players")
+        .addStringOption( (option) =>
+            option.setName("game")
+            .setDescription("Game name")
+        )
+        ;
+    return command.toJSON()
+}
+
+exports.run = async (client, interaction, args) => {
+
+    var message = await interaction.deferReply({
+        fetchReply: true,
+
+    })
 
     typeDict = {
-        "PLAYING": "oynuyor",
-        "STREAMING": "yayın yapıyor",
-        "LISTENING": "dinliyor",
-        "WATCHING": "izliyor"
+        0 : "playing",
+        1 : "streaming",
+        2 : "listening",
+        3 : "watching",
+        // 4 : "custom"
+        4 : "in",
+        5 : "looking for"
     }
+
+
+    const userId = interaction.member.user.id
+    var gameName = null
+    var activityType = null
+    if (interaction.options.getString("game") != null) {
+        gameName = interaction.options.getString("game").toUpperCase()
+        activityType = 5
+    }
+    else {
+        message.guild.presences.cache.map(presence => {
+            if (presence.user.id == userId) {
+                if (presence.activities.length > 0){
+                    gameName = presence.activities[0].name.toUpperCase()
+                    activityType = presence.activities[0].type
+                }
+            }
+        })
+        if (gameName == null){
+            interaction.editReply({
+                content: "You are doing nothing, search guys with `/findplayer` command and `game` option or try while in a game.",
+                ephemeral: true
+            })
+            return 1
+        }
+    }
+
+    const teammates = []
+    message.guild.presences.cache.map(presence => {
+        if (presence.user.id != userId) {
+            presence.activities.map( activity => {
+                if (activity.name.toUpperCase() == gameName) {
+                    fetchAndPushMember(message.guild, presence.user.id, teammates)
+                }
+            })
+        }
+    })
+
+    var msg = `You are ${typeDict[activityType]} **${gameName}**.\n`;
+    if ((await teammates).length > 0){
+        msg = msg + `\nOther guys in ${gameName} are:\n`
+        for(i=0; i<teammates.length; i++) {
+            msg = msg + `- <@${teammates[i].user.id}>\n`
+        }
+    } else{
+        msg = msg + `❓No other guys were found.`
+    }
+
+    interaction.editReply(
+        {
+            content: msg,
+        }
+    )
+
+    return 1
+
+
 
     var guildUsers = {};
     message.guild.members.cache.map(item => {
@@ -25,7 +104,8 @@ exports.run = (client, message, args) => {
     } else {
         console.log("$$")
         message.guild.presences.cache.map(item => {
-            console.log(item.activities)
+            // console.log(item.user.username)
+            // console.log(item.activities)
             if (item.userID === userId) {
                 for (act in item.activities) {
                     if (item.activities[act].name === "Custom Status") {
@@ -83,3 +163,13 @@ exports.run = (client, message, args) => {
         message.channel.send("Şu anda hiçbir şey yapmıyorsun adamım! Meşgul etmeee")
     }
 }
+
+async function fetchAndPushMember(guild, memberId, memberList) {
+    try {
+      const member = await guild.members.fetch(memberId);
+      memberList.push(member);
+      console.log('Member fetched and pushed to the list:', member.user.tag);
+    } catch (error) {
+      console.error('Error fetching member:', error);
+    }
+  }

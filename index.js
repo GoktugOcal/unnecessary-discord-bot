@@ -1,10 +1,11 @@
-const { Client, Events, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, Events, GatewayIntentBits, Partials, ActivityType } = require('discord.js');
 
 const client = new Client(
   {
     intents: [
       GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.GuildPresences
     ],
     autofetch: [
       'MESSAGE_CREATE',
@@ -20,10 +21,15 @@ const client = new Client(
 client.on(Events.ClientReady, () => {
   console.log(`Execution started...`);
 
+  // client.user.setPresence({
+  //   game: { name: '.help' },
+  //   status: 'online',
+  //  });
+
   client.user.setPresence({
-    game: { name: '.help' },
-    status: 'online',
-   });
+    activities: [{ name: `your commands`, type: ActivityType.Listening }],
+    status: 'dnd',
+  });
 
   const eventFile = require(`./src/register_commands.js`);
   // But first check if it's an event emitted once
