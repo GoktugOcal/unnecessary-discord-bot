@@ -1,7 +1,9 @@
 const request = require('sync-request');
 const Discord = require('discord.js');
 const fs = require('fs')
-const bard = require('../../helpers/bard.js')
+// const bard = require('../../helpers/bard.js')
+const Chatbot = require("../../helpers/chatbot_bard.js")
+
 
 exports.create = () => {
     const command = new Discord.SlashCommandBuilder()
@@ -23,11 +25,20 @@ exports.run = async (client, interaction) => {
             fetchReply: true
         }
     )
+
+    const chatbot = new Chatbot(process.env.Secure1PSID);
+
     
     //"Do not talk just give the answer in maximum 3 sentences. "
-    const prompt = interaction.options.getString('prompt') + " Make it short in 3 sentences."
-    const res = await bard.ask(prompt)
+    // const prompt = interaction.options.getString('prompt') + " Make it short in 3 sentences."
+    const prompt = interaction.options.getString('prompt') + " Make it short in one paragraph."
 
-    interaction.editReply(res)
 
+    // const res = await bard.ask(prompt)
+    // interaction.editReply(res)
+
+
+    const response = await chatbot.ask(prompt);
+    interaction.editReply(response.content);
+    
 }

@@ -2,7 +2,7 @@
 A Discord bot with different types of functionalities
 
 ```shell
-npm i discord.js @discordjs/rest discord-api-types dotenv sync-request quickchart-js
+npm i discord.js @discordjs/rest discord-api-types dotenv sync-request quickchart-js random
 ```
 
 - Fill ".env" with:
