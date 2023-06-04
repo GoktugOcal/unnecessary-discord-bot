@@ -37,7 +37,7 @@ class Chatbot {
         if (resp.status !== 200) {
             throw new Error('Could not get Google Bard');
         }
-        console.log(resp.data.match(/"SNlM0e":"(.*?)"/));
+        console.log(resp);
         const SNlM0e = resp.data.match(/"SNlM0e":"(.*?)"/)[1];
 
         return SNlM0e;
