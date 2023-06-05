@@ -1,4 +1,35 @@
 # unnecessary-discord-bot
+
+This is an Discord bot which has unnecessary but nice-to-have functionalities for a Discord server where there are League of Legends players, film enthusiast and loveful community. Unnecessary Discord Bot depends on the latest DiscordJS version and it's slash commands. The commands is explained below.
+
+The bot also uses multiple API services: [RIOT API](https://developer.riotgames.com/) and [OMDb API](https://www.omdbapi.com/).
+
+More unnecessary functions were planned to be added.
+
+## Features
+
+Let's look at those functions:
+
+#### League of Legends summoner and match informations
+
+> **/lol summoer rank** summoner-name:`<summoner-name>` summoner-region:`summoner-region`
+
+
+#### Movie search and suggestion
+
+#### Find players that you can play with
+
+#### Ask question *(to the Google Bard)*
+
+## Installation
+
+## .env Requirements
+
+
+
+
+
+
 A Discord bot with different types of functionalities
 
 ```shell
