@@ -10,12 +10,13 @@ More unnecessary functions were planned to be added.
 
 Let's look at those functions:
 
-#### League of Legends summoner and match informations
+#### League of Legends summoner and match informations ( `/lol` )
 
-> 👽 **`/lol summoer rank`** `summoner-name:` `summoner-region:`
+- **/lol summoner rank** : returns the rank statistics of a LoL player.
 
-> **Note**
-> 👽 **`/lol summoer rank`** `summoner-name:` `summoner-region:`
+> 👽 **`/lol summoner rank`** `summoner-name:` `summoner-region:`
+![](./docs/lol-summoner-rank-1.png)
+
 
 
 
