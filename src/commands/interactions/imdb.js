@@ -1,7 +1,7 @@
 const request = require('sync-request');
 const Discord = require('discord.js');
 
-apikey = "8b528233";
+apikey = process.env.OMDB_API;
 
 exports.create = () => {
     const command = new Discord.SlashCommandBuilder()
