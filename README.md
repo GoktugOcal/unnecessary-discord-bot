@@ -15,7 +15,11 @@ Let's look at those functions:
 - **/lol summoner rank** : returns the rank statistics of a LoL player.
 
 > 👽 **`/lol summoner rank`** `summoner-name:` `summoner-region:`
-![](./docs/lol-summoner-rank-1.png)
+
+> ![](./docs/lol-summoner-rank-1.png)
+
+> **Note**
+> **Look at lasr 5 matches** button executes `/lol matches latest` command for same summoner-name and summoner-region.
 
 
 
