@@ -37,8 +37,9 @@ exports.run = async (client, interaction) => {
     // const res = await bard.ask(prompt)
     // interaction.editReply(res)
 
+    header = `<@${interaction.member.user.id}> have said that: **${interaction.options.getString('prompt')}**\n\nAnswer: `
 
     const response = await chatbot.ask(prompt);
-    interaction.editReply(response.content);
+    interaction.editReply(header + response.content);
     
 }
