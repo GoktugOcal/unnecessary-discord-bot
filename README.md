@@ -12,7 +12,11 @@ Let's look at those functions:
 
 #### League of Legends summoner and match informations
 
-> **/lol summoer rank** summoner-name:`<summoner-name>` summoner-region:`summoner-region`
+> 👽 **`/lol summoer rank`** `summoner-name:` `summoner-region:`
+
+> **Note**
+> 👽 **`/lol summoer rank`** `summoner-name:` `summoner-region:`
+
 
 
 #### Movie search and suggestion
