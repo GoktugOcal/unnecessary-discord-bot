@@ -254,38 +254,73 @@ async function latest_matches (client, interaction, message, start, followUpRepl
     var idxCounter = start
     var button_emojis = lolButtons.stats_button_info
 
-    for (i = 0; i < matchCount; i++) {
+    await matchIdList.map(async (gameId, idx) => {
+        lolHelper.get_match_info(gameId, region, apikey).then(async (matchStats) => {
+            
+            var summonerStats = null
 
-        gameId = matchIdList[i]
-        var matchStats = lolHelper.get_match_info(gameId, region, apikey) // RIOT API
-        var summonerStats = null
+            participantIdentities = matchStats["info"]["participants"].map(item => {
+                if (item["summonerId"] === summonerID) {
+                    summonerStats = matchStats["info"]["participants"][item["participantId"] - 1]
+                }
+            })
 
-        participantIdentities = matchStats["info"]["participants"].map(item => {
-            if (item["summonerId"] === summonerID) {
-                summonerStats = matchStats["info"]["participants"][item["participantId"] - 1]
+            if (summonerStats["win"] === true) { result = "win"; noWins += 1 }
+            else { result = "lose"; noLoses += 1 }
+
+            const date= new Date(matchStats["info"]["gameStartTimestamp"]);
+            dateFormat = date.getHours() + ":" + date.getMinutes() + ", "+ date.toDateString();
+            
+            matches[idx] = {
+                "gameMode": matchStats["info"]["gameMode"],
+                "champion": summonerStats["championName"],
+                "result": result,
+                "kills": summonerStats["kills"],
+                "assists": summonerStats["assists"],
+                "deaths": summonerStats["deaths"],
+                "kda" : summonerStats["challenges"]["kda"],
+                "totalDamageDealtToChampions" : summonerStats["totalDamageDealtToChampions"],
+                "damageDealtToBuildings" : summonerStats["damageDealtToBuildings"],
+                "gameStartTime" : dateFormat,
+                "matchId" : matchStats["metadata"]["matchId"]
             }
-        })
-
-        if (summonerStats["win"] === true) { result = "win"; noWins += 1 }
-        else { result = "lose"; noLoses += 1 }
-
-        const date= new Date(matchStats["info"]["gameStartTimestamp"]);
-        dateFormat = date.getHours() + ":" + date.getMinutes() + ", "+ date.toDateString();
-        
-        matches[i] = {
-            "gameMode": matchStats["info"]["gameMode"],
-            "champion": summonerStats["championName"],
-            "result": result,
-            "kills": summonerStats["kills"],
-            "assists": summonerStats["assists"],
-            "deaths": summonerStats["deaths"],
-            "kda" : summonerStats["challenges"]["kda"],
-            "totalDamageDealtToChampions" : summonerStats["totalDamageDealtToChampions"],
-            "damageDealtToBuildings" : summonerStats["damageDealtToBuildings"],
-            "gameStartTime" : dateFormat,
-            "matchId" : matchStats["metadata"]["matchId"]
         }
-    }
+        )
+    })
+
+    // for (i = 0; i < matchCount; i++) {
+
+    //     gameId = matchIdList[i]
+    //     var matchStats = lolHelper.get_match_info(gameId, region, apikey) // RIOT API
+    //     console.log(matchStats["metadata"]["matchId"])
+    //     var summonerStats = null
+
+    //     participantIdentities = matchStats["info"]["participants"].map(item => {
+    //         if (item["summonerId"] === summonerID) {
+    //             summonerStats = matchStats["info"]["participants"][item["participantId"] - 1]
+    //         }
+    //     })
+
+    //     if (summonerStats["win"] === true) { result = "win"; noWins += 1 }
+    //     else { result = "lose"; noLoses += 1 }
+
+    //     const date= new Date(matchStats["info"]["gameStartTimestamp"]);
+    //     dateFormat = date.getHours() + ":" + date.getMinutes() + ", "+ date.toDateString();
+        
+    //     matches[i] = {
+    //         "gameMode": matchStats["info"]["gameMode"],
+    //         "champion": summonerStats["championName"],
+    //         "result": result,
+    //         "kills": summonerStats["kills"],
+    //         "assists": summonerStats["assists"],
+    //         "deaths": summonerStats["deaths"],
+    //         "kda" : summonerStats["challenges"]["kda"],
+    //         "totalDamageDealtToChampions" : summonerStats["totalDamageDealtToChampions"],
+    //         "damageDealtToBuildings" : summonerStats["damageDealtToBuildings"],
+    //         "gameStartTime" : dateFormat,
+    //         "matchId" : matchStats["metadata"]["matchId"]
+    //     }
+    // }
 
     const profile = new Discord.EmbedBuilder()
         .setColor('#964C96')
@@ -371,13 +406,13 @@ async function latest_matches (client, interaction, message, start, followUpRepl
     const statsRow = lolButtons.generateStatsButton() // row 2 - match stats buttons
     const loadingRow = lolButtons.generateLoadingButton() // loading button
     const timeoutRow = lolButtons.generateTimeoutButton() // time-out button
-    
     replyMessage =  {
         embeds: embeds,
         components: [paginationRow, statsRow],
         fetchReply: true
     };
 
+    /////// Message type
     if (followUpReply) { 
         var message = await message.reply(
             replyMessage
@@ -388,12 +423,11 @@ async function latest_matches (client, interaction, message, start, followUpRepl
             )
     }
     
-    // set collector and run
+    /////// set collector and run
     const collectorFilter = i => {
         i.deferUpdate();
         return i.user.id === interaction.user.id;
     };
-
     message.awaitMessageComponent(
         {
             componentType: Discord.ComponentType.Button,
@@ -421,8 +455,9 @@ async function latest_matches (client, interaction, message, start, followUpRepl
             }
         }
     ).catch( async collected => {
-            console.log(collected)
-            for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
+            console.log("Timeout for selection.")
+            // console.log(collected)
+            // for (i = 0; i < row.components.length; i++) { row.components[i].setDisabled(true) }
             message.edit({ components: [timeoutRow] })
         }
     );

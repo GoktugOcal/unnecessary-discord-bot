@@ -35,7 +35,7 @@ module.exports = {
         else { throw Error ("Latest matches request responded with code " + latestMatches.statusCode.toString()) }
     },
 
-    get_match_info: function (gameId, region, apikey) {
+    get_match_info: async function (gameId, region, apikey) {
         req = 'https://' + region + '.api.riotgames.com/lol/match/v5/matches/' + gameId + '?api_key=' + apikey
         console.log("Match info request: " + req)
 

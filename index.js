@@ -21,11 +21,6 @@ const client = new Client(
 client.on(Events.ClientReady, () => {
   console.log(`Execution started...`);
 
-  // client.user.setPresence({
-  //   game: { name: '.help' },
-  //   status: 'online',
-  //  });
-
   client.user.setPresence({
     activities: [{ name: `your commands`, type: ActivityType.Listening }],
     status: 'dnd',
