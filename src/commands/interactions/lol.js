@@ -5,6 +5,7 @@ const QuickChart = require('quickchart-js');
 var lolHelper = require('../../helpers/lol_helper.js')
 var lolButtons = require('../../helpers/lol_buttons.js');
 const lol_helper = require('../../helpers/lol_helper.js');
+const graphs = require('../../helpers/graphs.js')
 
 exports.create = () => {
     const command = new Discord.SlashCommandBuilder()
@@ -499,7 +500,11 @@ async function match_stats_helper(client, interaction,message, gameId, followUpR
         "physicalDamageDealtToChampions",
         "gameLength",
         "totalTimeSpentDead",
-        "totalTimeAlive"
+        "totalTimeAlive",
+        "individualPosition",
+        "timeCCingOthers",
+        "totalTimeCCDealt",
+        "kda"
     ]
 
     var stats = new Map()
@@ -520,94 +525,18 @@ async function match_stats_helper(client, interaction,message, gameId, followUpR
         stats["gameLength"].push(participant["challenges"]["gameLength"])
         stats["totalTimeSpentDead"].push(participant["totalTimeSpentDead"])
         stats["totalTimeAlive"].push(participant["challenges"]["gameLength"] - participant["totalTimeSpentDead"])
+        stats["individualPosition"].push(participant["individualPosition"])
+        stats["timeCCingOthers"].push(participant["timeCCingOthers"])
+        stats["totalTimeCCDealt"].push(participant["totalTimeCCDealt"])
+        stats["kda"].push(Math.round(participant["challenges"]["kda"] * 100) / 100)
     })
+    console.log(stats["kda"])
 
-    // total damage chart w breakdowns
+    const totalDamageChartBreakdownURL = await graphs.draw_totalDamageBreakdown(stats)
+    const deadTimeURL = await graphs.draw_deadTime(stats)
+    const CCScoreURL = await graphs.draw_CCScore(stats)
+    const KDAScoreURL = await graphs.draw_KDAScore(stats)
 
-    const totalDamageChartBreakdown = new QuickChart();
-    totalDamageChartBreakdown.setConfig({
-        type: 'horizontalBar',
-        data: {
-            labels: stats["labelName"],
-            datasets: [
-                {
-                    label: 'Magic',
-                    data: stats["magicDamageDealtToChampions"],
-                    backgroundColor: 'royalblue'
-                },
-                {
-                    label: 'Physical',
-                    data: stats["physicalDamageDealtToChampions"],
-                    backgroundColor: 'tomato'
-                },
-                {
-                    label: 'True',
-                    data: stats["trueDamageDealtToChampions"],
-                    backgroundColor: 'khaki'
-                    
-                }
-            ]
-        },
-        options: {
-            title: {
-                display: true,
-                text: 'Total Damage Dealt to Champions'
-            },
-            responsive: true,
-            scales: {
-                xAxes: [{
-                   stacked: true // this should be set to make the bars stacked
-                }],
-                yAxes: [{
-                   stacked: true // this also..
-                }]
-            }
-        },
-        
-    })
-    .setWidth(800)
-    .setHeight(800);
-    const totalDamageChartBreakdownURL = await totalDamageChartBreakdown.getShortUrl();
-
-
-    const deadTime = new QuickChart();
-    deadTime.setConfig({
-        type: 'bar',
-        data: {
-            labels: stats["labelName"],
-            datasets: [
-                {
-                    label: 'Alive',
-                    data: stats["totalTimeAlive"],
-                    backgroundColor: 'lightskyblue'
-                },
-                {
-                    label: 'Dead',
-                    data: stats["totalTimeSpentDead"],
-                    backgroundColor: 'darkorange'
-                }
-            ]
-        },
-        options: {
-            title: {
-                display: true,
-                text: 'Total Time Spent Dead'
-            },
-            responsive: true,
-            scales: {
-                xAxes: [{
-                   stacked: true // this should be set to make the bars stacked
-                }],
-                yAxes: [{
-                   stacked: true // this also..
-                }]
-            }
-        },
-        
-    })
-    .setWidth(800)
-    .setHeight(400);
-    const deadTimeURL = await deadTime.getShortUrl();
 
     const totalDamageChartBreakdownEmbed = new Discord.EmbedBuilder()
         .setTitle('Total Damage Dealt to Champions')
@@ -617,11 +546,22 @@ async function match_stats_helper(client, interaction,message, gameId, followUpR
         .setTitle('Total Time Spent Dead')
         .setImage(deadTimeURL)
 
+    const CCScoreEmbed = new Discord.EmbedBuilder()
+        .setTitle('Crowd Control (CC) Score')
+        .setImage(CCScoreURL)
+
+    const KDAScoreEmbed = new Discord.EmbedBuilder()
+        .setTitle('KDA Score')
+        .setImage(KDAScoreURL)
+
+
 
     if (primer_embed == null) {
         replyMessage =  {
             embeds: [
                 totalDamageChartBreakdownEmbed,
+                KDAScoreEmbed,
+                CCScoreEmbed,
                 deadTimeEmbed],
             fetchReply: true
         };    
@@ -630,6 +570,8 @@ async function match_stats_helper(client, interaction,message, gameId, followUpR
             embeds: [
                 primer_embed,
                 totalDamageChartBreakdownEmbed,
+                KDAScoreEmbed,
+                CCScoreEmbed,
                 deadTimeEmbed],
             fetchReply: true
         };
